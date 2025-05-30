@@ -4,7 +4,7 @@
 
 This repo contains an code that implements and demonstrates our method for finding Sequence-Space Jacobians of life cycle models.
 
-It has code to reproduce all the figures and experiments reported in the paper, as well as an independent demonstration in a jupyter notebook.
+It has code to [reproduce all the figures](https://github.com/Mv77/LC-SSJ_public/blob/main/Paper_figures.py) and [experiments](https://github.com/Mv77/LC-SSJ_public/blob/main/LC_IH_benchmarks.py) reported in the paper, as well as a [standalone demonstration](https://github.com/Mv77/LC-SSJ_public/blob/main/demo.ipynb) in a jupyter notebook.
 
 Please cite the paper if you find this code useful. Here is a suggested `.bib` entry:
 ```
