@@ -13,18 +13,19 @@ Please cite the paper if you find this code useful. Here is a suggested `.bib` e
 @online{bardoczy_sequence-space_2025,
   type = {SSRN Scholarly Paper},
   title = {Sequence-{{Space Jacobians}} of {{Life Cycle Models}}},
-  author = {Bardoczy, Bence and Velasquez-Giraldo, Mateo},
+  author = {Bardóczy, Bence and Velásquez-Giraldo, Mateo},
   date = {2025-05-29},
   number = {5274675},
   eprint = {5274675},
   eprinttype = {Social Science Research Network},
   location = {Rochester, NY},
+  doi = {10.2139/ssrn.5274675},
   url = {https://papers.ssrn.com/abstract=5274675},
-  urldate = {2025-05-29},
+  urldate = {2025-06-02},
   langid = {english},
   pubstate = {prepublished},
-  keywords = {General Equilibrium,Heterogeneous Agent Models,Life Cycle Dynamics,Sequence Space Jacobians},
 }
+
 ```
 
 Our code uses and builds on the [sequence-jacobian](https://github.com/shade-econ/sequence-jacobian/tree/master) and [HARK](https://github.com/econ-ark/HARK) toolkits.
