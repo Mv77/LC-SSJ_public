@@ -86,7 +86,7 @@ def mass_to_1d_grid_monotone(points_row, grid, mass_out):
         mass_out[ai, ind] += frac
 
 
-# %% Tax function
+# %% Auxiliary simple functions
 @jit
 def crra_inv(u, crra):
     return np.power(u * (1 - crra), 1 / (1 - crra))
@@ -294,9 +294,13 @@ class SimpleNKAgent(AgentType):
         self.update_solution_terminal()
 
     def pre_solve(self):
+        # HARK expects a pre-solve method that we do not need in this case.
         return None
 
     def update_solution_terminal(self):
+        # Creates a dummy terminal solution as the starting point for backward
+        # iteration.
+
         if type(self.params["prod_pers_grid"]) == list:
             z_len = len(self.params["prod_pers_grid"][-1])
         else:
@@ -329,6 +333,7 @@ class SimpleNKAgent(AgentType):
         )
 
     def get_outcomes(self, outcomes):
+        # Organize life cycle outcomes into a dictionary
         outcome_mesh = {
             out: [sol.outcomes[out] for sol in self.solution] for out in outcomes
         }
@@ -336,6 +341,9 @@ class SimpleNKAgent(AgentType):
         return outcome_mesh
 
     def build_transitions(self, newborn_dstn=None):
+        # Construct an object representing the transitions of a
+        # population of agents.
+
         # Make survival probabilities a list if they are constant
         if isinstance(self.params["LivPrb"], list):
             surv_probs = self.params["LivPrb"]

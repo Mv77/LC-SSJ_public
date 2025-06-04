@@ -179,7 +179,7 @@ def plot_jacobians(input, shk_size, output, agent, jacs, ages, filename):
 
 
 def plot_cohort_resps(input, shk_size, output, agent, coh_jacs, coh_ages, filename):
-    
+
     shk_times = np.array([0, 20, 40])
 
     age_inds = np.array(coh_ages) - age_vec[0]
