@@ -8,6 +8,8 @@ This repo contains an code that implements and demonstrates our method for findi
 
 It has code to [reproduce all the figures](https://github.com/Mv77/LC-SSJ_public/blob/main/Paper_figures.py) and [experiments](https://github.com/Mv77/LC-SSJ_public/blob/main/LC_IH_benchmarks.py) reported in the paper, as well as a [standalone demonstration](https://github.com/Mv77/LC-SSJ_public/blob/main/demo.ipynb) in a jupyter notebook.
 
+We will try to clean the code up and provide better comments soon. Contact us if you have issues in the meantime.
+
 Please cite the paper if you find this code useful. Here is a suggested `.bib` entry:
 ```
 @online{bardoczy_sequence-space_2025,
