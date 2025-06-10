@@ -13,6 +13,7 @@ output = "c"
 
 
 def make_ih_params():
+    """Convert life-cycle parameters to an infinite-horizon specification."""
     def unlist(par):
         if type(par) == list:
             return par[0]
@@ -32,6 +33,7 @@ ih_params = make_ih_params()
 
 
 def LC_benchmark(reps):
+    """Benchmark Jacobian computation in the life-cycle model."""
 
     # Create agent
     agent = SimpleNKAgent(**lc_params)
@@ -75,6 +77,7 @@ def LC_benchmark(reps):
 
 
 def IH_benchmark(reps):
+    """Benchmark Jacobian computation in the infinite-horizon model."""
     agent = SimpleNKAgent(**ih_params)
     agent.update_solution_terminal()
     agent.solve(verbose=False)
@@ -114,6 +117,7 @@ def IH_benchmark(reps):
 
 
 def main(reps):
+    """Run both benchmarks and print summary statistics."""
 
     # LC benchmark
     print("LC benchmark")

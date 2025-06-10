@@ -10,6 +10,7 @@ from Tools.transition_matrices import DiscreteTransitions
 
 # Recursive map function for lists and dicts
 def rec_map(fn, x):
+    """Recursively apply ``fn`` to all elements of lists or dictionaries."""
     if isinstance(x, dict):
         return {k: rec_map(fn, v) for k, v in x.items()}
     elif isinstance(x, list):
@@ -30,6 +31,7 @@ def shock_input_ih(
     horizon=200,
     dx=1e-3,
 ):
+    """Solve a temporary finite-horizon version of an IH agent with a shock."""
     # %% Step 1: Set up a finite horizon clone of the agent
     params = deepcopy(agent.params.to_dict())
     params["T_cycle"] = horizon
@@ -77,6 +79,7 @@ def shock_input_ih(
 
 
 def shock_input_lc(ss_agent, shk_param, dx, s, outcome_fns):
+    """Shock a parameter in a life-cycle model and resolve future ages."""
     # %% Create the shocked agent
 
     # Make a base parameter list
@@ -122,6 +125,7 @@ def fake_news_jacobian_ih(
     verbose=False,
     steady_state=None,
 ):
+    """Compute Jacobians in an infinite-horizon model using fake news shocks."""
     if verbose:
         print("Step 1: steady state")
 
@@ -231,6 +235,7 @@ def fake_news_jacobian_lc(
     verbose=False,
     steady_state=None,
 ):
+    """Compute Jacobians in a life-cycle model using fake news shocks."""
     # Get the number of ages
     A = agent.params._length
 
@@ -311,17 +316,17 @@ def fake_news_jacobian_lc(
 
 @jit(nopython=True)
 def update_Fn_mats(Fn_mats, evecs, dD1, A, a, k):
-    """
-    Fn_mats: (n_out, A, A, A)
-    evecs : (T, n_out, G)
-    dD1   : (G,)
-    """
+    """Update fake news matrices with contributions from one period."""
+    # Dimensions:
+    # Fn_mats: (n_out, A, A, A)
+    # evecs : (T, n_out, G)
+    # dD1   : (G,)
     n_out = Fn_mats.shape[0]
     G = dD1.shape[0]
 
     for oi in range(n_out):
         for t in range(1, A - a):
-            # compute dot(evecs[t-1, oi, :], dD1) by hand
+            # Compute dot(evecs[t-1, oi, :], dD1) manually for Numba compatibility
             s = 0.0
             for g in range(G):
                 s += evecs[t - 1, oi, g] * dD1[g]
@@ -329,10 +334,12 @@ def update_Fn_mats(Fn_mats, evecs, dD1, A, a, k):
 
 
 def iterate_exp_vector(livprb, living_tmat, evec):
+    """Propagate an expectation vector forward one period."""
     return livprb * living_tmat.postmult(evec)
 
 
 def _get_expectation_vectors(points, living_tmats, surv_probs):
+    """Compute expectation vectors for each age in a life-cycle model."""
     A = len(points)
     evecs = [[p.copy()] for p in points]
     for t in range(1, A):

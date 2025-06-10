@@ -27,7 +27,7 @@ class TransitionMatrix:
 
     def postmult(self, outcomes):
         """
-        Generic operation that takes expectations of ouctomes in the next time period conditional
+        Generic operation that takes expectations of outcomes in the next time period conditional
         on current states.
         Outcomes should have shape (..., grid_{t+1}) and the method should return a tensor of shape
         (..., grid_t).
