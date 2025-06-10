@@ -15,5 +15,4 @@ dependencies:
   - isort
   - pip:
     - sequence-jacobian==1.0.0
-    # Unreleased but public hark version
-    - git+https://github.com/econ-ark/HARK.git@1dbb1fb689a0c4f18cdacba7ca914781185ce62f
+    - econ-ark==0.16.0
