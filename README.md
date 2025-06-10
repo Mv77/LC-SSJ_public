@@ -1,12 +1,14 @@
-# Public acompanying code to [``Sequence-Space Jacobians of Life Cycle Models''](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5274675)
+# Public accompanying code to [``Sequence-Space Jacobians of Life Cycle Models''](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5274675)
 
 ## By [Bence Bardoczy](https://www.bencebardoczy.com/) and [Mateo Velasquez-Giraldo](https://mateovg.com/)
 
 **Launch an interactive demo:**     [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Mv77/LC-SSJ_public/HEAD?urlpath=%2Fdoc%2Ftree%2Fdemo.ipynb)
 
-This repo contains an code that implements and demonstrates our method for finding Sequence-Space Jacobians of life cycle models.
+This repository contains code that implements and demonstrates our method for finding Sequence-Space Jacobians of life cycle models.
 
 It has code to [reproduce all the figures](https://github.com/Mv77/LC-SSJ_public/blob/main/Paper_figures.py) and [experiments](https://github.com/Mv77/LC-SSJ_public/blob/main/LC_IH_benchmarks.py) reported in the paper, as well as a [standalone demonstration](https://github.com/Mv77/LC-SSJ_public/blob/main/demo.ipynb) in a jupyter notebook.
+
+We will try to clean the code up and provide better comments soon. Contact us if you have issues in the meantime.
 
 Please cite the paper if you find this code useful. Here is a suggested `.bib` entry:
 ```

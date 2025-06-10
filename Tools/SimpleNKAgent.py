@@ -19,6 +19,7 @@ from Tools.transition_matrices import DiscreteTransitions, TransitionMatrix
     nopython=True,
 )
 def interp_monotone(m, c, m_new, c_new):
+    """Monotone interpolation of consumption policy."""
     n = m.shape[0]
     p = m_new.shape[0]
 
@@ -54,6 +55,7 @@ def interp_monotone(m, c, m_new, c_new):
     target="parallel",
 )
 def mass_to_1d_grid_monotone(points_row, grid, mass_out):
+    """Distribute mass from arbitrary points onto a 1D grid."""
     # Number of points in the row
     A = points_row.shape[0]
     # Number of grid cells
@@ -114,6 +116,8 @@ def marg_beq_func(a, beq_inten, beq_shift, crra):
 
 # %% Transition matrix class for the model
 class NKtmat(TransitionMatrix):
+    """Transition matrix for the SimpleNK model."""
+
     def __init__(self, a_tmat, z_tmat):
         super().__init__()
         self.a_tmat = a_tmat
@@ -136,6 +140,8 @@ class NKtmat(TransitionMatrix):
 
 # %% Solution class definition
 class SimpleNKSolution(MetricObject):
+    """Container for the solution of a single period."""
+
     def __init__(self, grids, outcomes, vfunc, tmat=None):
         self.distance_criteria = ["vfunc"]
         self.grids = grids
@@ -147,6 +153,8 @@ class SimpleNKSolution(MetricObject):
 # %% Agent solver
 @dataclass
 class SimpleNKAgentSolver:
+    """One-period solver for the SimpleNKAgent."""
+
     solution_next: SimpleNKSolution
     crra: float
     beta: float
@@ -168,21 +176,27 @@ class SimpleNKAgentSolver:
 
     # Auxiliary functions
     def dudc(self, c):
+        """Marginal utility of consumption."""
         return crra_marg(c, self.crra)
 
     def dudc_inv(self, c):
+        """Inverse marginal utility of consumption."""
         return crra_marg_inv(c, self.crra)
 
     def u_inv(self, u):
+        """Inverse of the CRRA utility function."""
         return crra_inv(u, self.crra)
 
     def beq_func(self, a):
+        """Bequest utility."""
         return beq_func(a, self.beq_inten, self.beq_shift, self.crra)
 
     def marg_beq_func(self, a):
+        """Marginal bequest utility."""
         return marg_beq_func(a, self.beq_inten, self.beq_shift, self.crra)
 
     def income_func(self, z_t):
+        """Compute income components for a given productivity state."""
         # Other components of cash-on-hand
         if self.working:
             eff_hours = np.exp(self.prod_age_inter + z_t)
@@ -198,6 +212,7 @@ class SimpleNKAgentSolver:
         return pret_inc, tax, net_transf
 
     def solve(self):
+        """Solve one period of the household problem via EGM."""
         # Find grid dimensions
         n_zt = self.prod_pers_trans.shape[0]
         n_at = len(self.solution_next.grids["a_tm1"])
@@ -275,7 +290,10 @@ class SimpleNKAgentSolver:
 
 # %% Agent class definition
 class SimpleNKAgent(AgentType):
+    """Lifecycle agent used in the examples and tests."""
+
     def __init__(self, cycles, tolerance=1e-10, **kwds):
+        """Initialize the agent with model parameters."""
         self.cycles = cycles
         self.pseudo_terminal = False
         self.tolerance = tolerance
@@ -294,12 +312,11 @@ class SimpleNKAgent(AgentType):
         self.update_solution_terminal()
 
     def pre_solve(self):
-        # HARK expects a pre-solve method that we do not need in this case.
+        """Placeholder for compatibility with HARK's API."""
         return None
 
     def update_solution_terminal(self):
-        # Creates a dummy terminal solution as the starting point for backward
-        # iteration.
+        """Create a dummy terminal solution used to start backward iteration."""
 
         if type(self.params["prod_pers_grid"]) == list:
             z_len = len(self.params["prod_pers_grid"][-1])
@@ -333,6 +350,7 @@ class SimpleNKAgent(AgentType):
         )
 
     def get_outcomes(self, outcomes):
+        """Return requested outcomes for each period as a dictionary."""
         # Organize life cycle outcomes into a dictionary
         outcome_mesh = {
             out: [sol.outcomes[out] for sol in self.solution] for out in outcomes
@@ -341,6 +359,7 @@ class SimpleNKAgent(AgentType):
         return outcome_mesh
 
     def build_transitions(self, newborn_dstn=None):
+        """Create a ``DiscreteTransitions`` object for the agent."""
         # Construct an object representing the transitions of a
         # population of agents.
 

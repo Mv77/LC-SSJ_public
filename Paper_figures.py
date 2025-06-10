@@ -15,6 +15,7 @@ figure_dir = os.path.join(root_dir, "Figures")
 
 
 def cohort_jac(age_jac):
+    """Convert age Jacobians to cohort Jacobians."""
     A = age_jac.shape[0]
     T = age_jac.shape[1]
 
@@ -29,6 +30,7 @@ def cohort_jac(age_jac):
 
 
 def ss_dstn_plot(agent, filename=None):
+    """Plot the steady-state distribution and average life-cycle profiles."""
     # Get the steady state distribution
     ss_dstn = agent.transitions.find_steady_state_dstn()
     # and the points of policy functions we want to see
@@ -74,6 +76,7 @@ def ss_dstn_plot(agent, filename=None):
 
 
 def get_fn_and_jacs(agent, inputs, outputs, verbose=False):
+    """Compute fake news matrices and Jacobians for a list of shocks."""
     jacs = {}
     fn_mats = {}
     for shk_param in inputs:
@@ -96,6 +99,7 @@ def get_fn_and_jacs(agent, inputs, outputs, verbose=False):
 
 
 def plot_fn_mats(fn_mats, ages, max_t, filename, short_label=False):
+    """Visualize non-zero structure of fake news matrices."""
 
     fig, axs = plt.subplots(1, len(ages), figsize=(6, 2.5))
     for i, age in enumerate(ages):
@@ -115,6 +119,7 @@ def plot_fn_mats(fn_mats, ages, max_t, filename, short_label=False):
 
 
 def plot_jacobians(input, shk_size, output, agent, jacs, ages, filename):
+    """Plot selected age-specific and aggregate Jacobians expresed as relative responses."""
     age_inds = np.array(ages) - age_vec[0]
 
     # Get the steady state distribution
@@ -179,6 +184,7 @@ def plot_jacobians(input, shk_size, output, agent, jacs, ages, filename):
 
 
 def plot_cohort_resps(input, shk_size, output, agent, coh_jacs, coh_ages, filename):
+    """Plot cohort-specific responses for selected shocks."""
 
     shk_times = np.array([0, 20, 40])
 
@@ -197,7 +203,7 @@ def plot_cohort_resps(input, shk_size, output, agent, coh_jacs, coh_ages, filena
     coh_jac = coh_jacs[input][output][age_inds, :T_plots, :] * shk_size
     coh_jac = coh_jac[:, :, shk_times]
 
-    # The ammount by which we should normalize shifts with t.
+    # The amount by which we should normalize shifts with t.
     denom = np.ones((len(coh_ages), T_plots, 1)) * np.nan
     for i, age_ind in enumerate(age_inds):
         for t in range(T_plots):
@@ -242,6 +248,7 @@ def plot_cohort_resps(input, shk_size, output, agent, coh_jacs, coh_ages, filena
 
 
 def main(plots=True):
+    """Reproduce figures from the paper."""
     # Create and solve agent (without GE calibration)
     agent = SimpleNKAgent(**params)
     agent.update_solution_terminal()

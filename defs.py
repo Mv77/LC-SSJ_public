@@ -10,6 +10,7 @@ dx = 1e-4
 
 # %% Paths depend on whether we are in a notebook or not
 def is_interactive():
+    """Return ``True`` when running in an interactive session."""
     import __main__ as main
 
     return not hasattr(main, "__file__")
