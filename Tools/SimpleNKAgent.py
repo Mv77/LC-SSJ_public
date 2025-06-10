@@ -117,6 +117,7 @@ def marg_beq_func(a, beq_inten, beq_shift, crra):
 # %% Transition matrix class for the model
 class NKtmat(TransitionMatrix):
     """Transition matrix for the SimpleNK model."""
+
     def __init__(self, a_tmat, z_tmat):
         super().__init__()
         self.a_tmat = a_tmat
@@ -140,6 +141,7 @@ class NKtmat(TransitionMatrix):
 # %% Solution class definition
 class SimpleNKSolution(MetricObject):
     """Container for the solution of a single period."""
+
     def __init__(self, grids, outcomes, vfunc, tmat=None):
         self.distance_criteria = ["vfunc"]
         self.grids = grids
@@ -152,6 +154,7 @@ class SimpleNKSolution(MetricObject):
 @dataclass
 class SimpleNKAgentSolver:
     """One-period solver for the SimpleNKAgent."""
+
     solution_next: SimpleNKSolution
     crra: float
     beta: float
@@ -288,6 +291,7 @@ class SimpleNKAgentSolver:
 # %% Agent class definition
 class SimpleNKAgent(AgentType):
     """Lifecycle agent used in the examples and tests."""
+
     def __init__(self, cycles, tolerance=1e-10, **kwds):
         """Initialize the agent with model parameters."""
         self.cycles = cycles

@@ -14,6 +14,7 @@ output = "c"
 
 def make_ih_params():
     """Convert life-cycle parameters to an infinite-horizon specification."""
+
     def unlist(par):
         if type(par) == list:
             return par[0]

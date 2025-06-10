@@ -31,7 +31,8 @@ def shock_input_ih(
     horizon=200,
     dx=1e-3,
 ):
-    """Solve a temporary finite-horizon version of an IH agent with a shock."""
+    """Solve a version of the model with a shock to shk_param at a given horizon
+    that reverts to the steady state parameters after that."""
     # %% Step 1: Set up a finite horizon clone of the agent
     params = deepcopy(agent.params.to_dict())
     params["T_cycle"] = horizon
@@ -385,7 +386,6 @@ def fake_news_jacobian(
         A tuple containing:
         - curly_J: The Jacobian matrix.
         - curly_F: The fake news matrix.
-        - ss_outcomes: The steady-state outcomes.
     """
 
     # Determine whether the model is life-cycle or infinite horizon

@@ -119,7 +119,7 @@ def plot_fn_mats(fn_mats, ages, max_t, filename, short_label=False):
 
 
 def plot_jacobians(input, shk_size, output, agent, jacs, ages, filename):
-    """Plot selected age-specific and aggregate Jacobians."""
+    """Plot selected age-specific and aggregate Jacobians expresed as relative responses."""
     age_inds = np.array(ages) - age_vec[0]
 
     # Get the steady state distribution
