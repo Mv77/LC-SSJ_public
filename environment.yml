@@ -10,6 +10,7 @@ dependencies:
   - numba
   - pip
   - ipykernel
+  - pytest
   # linting
   - black
   - isort

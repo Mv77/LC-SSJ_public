@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: environment.yml
+          activate-environment: lc-ssj
+          miniforge-variant: Mambaforge
+          use-mamba: true
+      - name: Run tests
+        shell: bash -l {0}
+        run: pytest -v
