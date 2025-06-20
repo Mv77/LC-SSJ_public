@@ -6,31 +6,51 @@ import numpy as np
 # %% Class that represents a transition matrix
 class TransitionMatrix:
     """
-    Representation of a transition matrix that transforms
-    (grid_t) to (grid_t+1).
-    Post multiplication must take an array with the shape of grid_{t+1} and transform it to the size of grid_t.
-    Pre multiplication must take an array with the shape of grid_t and transform it to the size of grid_{t+1}.
+    Representation of a transition matrix that maps a distribution on
+    ``grid_t`` to ``grid_{t+1}`` and provides conditional expectations of
+    next-period outcomes.
+
+    The :meth:`advance` method moves a distribution forward one period,
+    while :meth:`expect` computes conditional expectations of quantities
+    defined on ``grid_{t+1}``.
     """
 
     def __init__(self):
         pass
 
-    def premult(self, D):
+    def advance(self, D):
         """
-        Generic operation that advances a distribution to the next time period.
-        D should have the shape of the current grid (grid_t) and the method should return
-        a distribution with the shape of the next grid (grid_{t+1}).
+        Advance a distribution to the next period.
+
+        Parameters
+        ----------
+        D : np.ndarray
+            Distribution with the shape of ``grid_t``.
+
+        Returns
+        -------
+        np.ndarray
+            Distribution with the shape of ``grid_{t+1}``.
         """
         raise NotImplementedError(
             "This method should be implemented in subclasses of TransitionMatrix."
         )
 
-    def postmult(self, outcomes):
+    def expect(self, outcomes):
         """
-        Generic operation that takes expectations of outcomes in the next time period conditional
-        on current states.
-        Outcomes should have shape (..., grid_{t+1}) and the method should return a tensor of shape
-        (..., grid_t).
+        Take expectations of next-period outcomes conditional on current states.
+
+        Parameters
+        ----------
+        outcomes : np.ndarray
+            Array with shape ``(..., grid_{t+1})`` representing outcomes defined
+            on the next-period grid.
+
+        Returns
+        -------
+        np.ndarray
+            Array with shape ``(..., grid_t)`` containing conditional
+            expectations.
         """
         raise NotImplementedError(
             "This method should be implemented in subclasses of TransitionMatrix."
@@ -173,7 +193,7 @@ def _iterate_dstn_forward_lc(dstn_init, living_tmats, surv_probs, newborn_dstn):
     new_dstn = [newborn_dstn.copy()]
     dead_mass = 0.0
     for i, (d0, tmat) in enumerate(zip(dstn_init, living_tmats)):
-        new_dstn.append(tmat.premult(surv_probs[i] * d0))
+        new_dstn.append(tmat.advance(surv_probs[i] * d0))
         dead_mass += (1.0 - surv_probs[i]) * np.sum(d0)
     dead_mass += np.sum(dstn_init[-1])
     new_dstn[0] *= dead_mass
@@ -184,7 +204,7 @@ def _iterate_dstn_forward_lc(dstn_init, living_tmats, surv_probs, newborn_dstn):
 def _find_conditional_age_dsnt(dstn_init, living_tmats):
     dstns = [dstn_init.copy()]
     for tmat in living_tmats:
-        dstns.append(tmat.premult(dstns[-1]))
+        dstns.append(tmat.advance(dstns[-1]))
     return dstns
 
 
@@ -201,7 +221,7 @@ def _find_steady_state_dstn_lc(surv_probs, newborn_dstn, living_tmats):
 # Infinite horizon methods
 def _iterate_dstn_forward_ih(dstn_init, living_tmat, surv_prob, newborn_dstn):
     dead_mass = 1.0 - surv_prob
-    new_dstn = surv_prob * living_tmat.premult(dstn_init)
+    new_dstn = surv_prob * living_tmat.advance(dstn_init)
     new_dstn += dead_mass * newborn_dstn
 
     return new_dstn
