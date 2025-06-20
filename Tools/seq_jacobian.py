@@ -190,7 +190,7 @@ def fake_news_jacobian_ih(
         curly_E.append(
             death_exp
             + ss_transition.surv_probs[0]
-            * ss_transition.living_tmats[0].postmult(curly_E[-1])
+            * ss_transition.living_tmats[0].expect(curly_E[-1])
         )
 
     # After getting expectation vectors there is no gain from keeping states
@@ -296,7 +296,9 @@ def fake_news_jacobian_lc(
         # Update the rest of the elements
         for a in range(k + 1):
             # Flatten distribution for easier sums
-            dD1 = (livprb[a] * shk_tmats[a].premult(D_ss[a]) - D_ss[a + 1]).flatten()
+            dD1 = (
+                livprb[a] * shk_tmats[a].advance(D_ss[a]) - D_ss[a + 1]
+            ).flatten()
             update_Fn_mats(Fn_mats, e_vecs[a + 1], dD1, A, a, k)
 
     # Normalize everything by the shock size and pad with 0s to
@@ -336,7 +338,7 @@ def update_Fn_mats(Fn_mats, evecs, dD1, A, a, k):
 
 def iterate_exp_vector(livprb, living_tmat, evec):
     """Propagate an expectation vector forward one period."""
-    return livprb * living_tmat.postmult(evec)
+    return livprb * living_tmat.expect(evec)
 
 
 def _get_expectation_vectors(points, living_tmats, surv_probs):

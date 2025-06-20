@@ -123,14 +123,14 @@ class NKtmat(TransitionMatrix):
         self.a_tmat = a_tmat
         self.z_tmat = z_tmat
 
-    def postmult(self, out):
+    def expect(self, out):
         # Apply productivity transition
         exp = np.einsum("...mk,jm", out, self.z_tmat)
         # Apply asset transition
         exp = np.einsum("...jk,jlk->...jl", exp, self.a_tmat)
         return exp
 
-    def premult(self, D):
+    def advance(self, D):
         # Apply asset transition
         Dtp1 = np.einsum("ij,ijk->ik", D, self.a_tmat)
         # Apply productivity transition
