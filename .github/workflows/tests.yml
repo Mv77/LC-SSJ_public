@@ -14,7 +14,7 @@ jobs:
         with:
           environment-file: environment.yml
           activate-environment: lc-ssj
-          miniforge-variant: Mambaforge
+          miniforge-variant: Miniforge
           use-mamba: true
       - name: Run tests
         shell: bash -l {0}
