@@ -158,7 +158,8 @@ def fake_news_jacobian_ih(
     # Stack outcomes. Dimensions are (outcome, [states])
     out_names = list(ss_points.keys())
     nout = len(out_names)
-    ss_points = list(map(lambda x: np.stack(x, axis=0), zip(*ss_points.values())))[0]
+    # [0] index because outcomes are returned as length-1 lists
+    ss_points = np.stack([ss_points[key][0] for key in out_names], axis=0)
 
     # Stack shocked outcomes and flatten their state dimension. Dimensions are (outcome, s, [states])
     shocked_points = np.stack(
