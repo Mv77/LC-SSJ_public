@@ -4,10 +4,11 @@ import pytest
 from defs import nb_dstn, params
 from Paper_figures import get_fn_and_jacs
 from Tools.SimpleNKAgent import SimpleNKAgent
+from LC_IH_benchmarks import ih_params
 
 
 @pytest.fixture(scope="module")
-def agent():
+def lc_agent():
     """Create a solved agent instance once per test session."""
     ag = SimpleNKAgent(**params)
     ag.update_solution_terminal()
@@ -16,11 +17,11 @@ def agent():
     return ag
 
 
-def test_precomputed_jac_values(agent):
+def test_precomputed_lc(lc_agent):
     """
     Compare jacobian slices at a=0 and a=15 against precomputed reference.
     """
-    jacs, _ = get_fn_and_jacs(agent, ["R"], ["c"], verbose=False)
+    jacs, _ = get_fn_and_jacs(lc_agent, ["R"], ["c"], verbose=False)
     mat = jacs["R"]["c"]
     # At t=0 all entries should be zero
     assert mat[0, :5, :5] == pytest.approx(np.zeros((5, 5)))
@@ -35,3 +36,33 @@ def test_precomputed_jac_values(agent):
         ]
     )
     assert mat[15, :5, :5] == pytest.approx(expected_15, abs=1e-8)
+
+
+# An infinite horizon version too
+@pytest.fixture(scope="module")
+def ih_agent():
+    """Create a solved agent instance once per test session."""
+    ag = SimpleNKAgent(**ih_params)
+    ag.update_solution_terminal()
+    ag.solve(verbose=False)
+    ag.build_transitions(newborn_dstn=nb_dstn)
+    return ag
+
+
+def test_precomputed_ih(ih_agent):
+    """
+    Compare jacobian slices against precomputed reference.
+    """
+    jacs, _ = get_fn_and_jacs(ih_agent, ["R"], ["c"], verbose=False)
+    mat = jacs["R"]["c"]
+    # Reference slice at t=15
+    expected_Rc = np.array(
+        [
+            [0.0003011, -0.03572632, -0.02583596, -0.01883558, -0.013839],
+            [0.00027271, 0.00722292, -0.03084759, -0.02236824, -0.01635066],
+            [0.00023443, 0.00598134, 0.01127414, -0.02795255, -0.02028442],
+            [0.00019991, 0.0047849, 0.00923264, 0.01361229, -0.02625976],
+            [0.00016928, 0.00375229, 0.00734056, 0.01108328, 0.01496123],
+        ]
+    )
+    assert mat[:5, :5] == pytest.approx(expected_Rc, abs=1e-8)

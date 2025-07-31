@@ -296,9 +296,7 @@ def fake_news_jacobian_lc(
         # Update the rest of the elements
         for a in range(k + 1):
             # Flatten distribution for easier sums
-            dD1 = (
-                livprb[a] * shk_tmats[a].advance(D_ss[a]) - D_ss[a + 1]
-            ).flatten()
+            dD1 = (livprb[a] * shk_tmats[a].advance(D_ss[a]) - D_ss[a + 1]).flatten()
             update_Fn_mats(Fn_mats, e_vecs[a + 1], dD1, A, a, k)
 
     # Normalize everything by the shock size and pad with 0s to
