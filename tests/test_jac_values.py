@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 
 from defs import nb_dstn, params
+from LC_IH_benchmarks import ih_params
 from Paper_figures import get_fn_and_jacs
 from Tools.SimpleNKAgent import SimpleNKAgent
-from LC_IH_benchmarks import ih_params
 
 
 @pytest.fixture(scope="module")
