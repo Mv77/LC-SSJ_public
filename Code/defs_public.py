@@ -42,10 +42,7 @@ params = {
     "T_cycle": death_age - birth_age + 1,
     # Preferences
     "crra": 2.0,
-    "beta": 0.98,
-    # Bequest
-    "beq_inten": 0.0,
-    "beq_shift": 1e-5,
+    "beta": 0.99,
     # Financials
     "R": 1.02,
     # Lump sum transfers
@@ -87,9 +84,9 @@ age_mat = np.stack(
 income_log_int = np.dot(age_mat, ln_y_poly_coefs)
 
 # Productivity shocks
-prod_pers = 0.95
+prod_pers = 0.97
 prod_shk_sd = 0.2
-prod_points = 7
+prod_points = 9
 prod_grid, prod_ss, prod_tmat = markov_rouwenhorst(
     rho=prod_pers, sigma=prod_shk_sd, N=prod_points
 )
@@ -127,3 +124,5 @@ nb_dstn = np.zeros_like(a_grid)
 nb_dstn[0] = 1.0
 # Apply z distribution
 nb_dstn = nb_dstn * prod_ss_work[:, None]
+
+params["nb_dstn"] = nb_dstn

@@ -7,9 +7,8 @@ from HARK.metric import MetricObject
 from HARK.utilities import make_grid_exp_mult
 from numba import float64, guvectorize, jit
 from sequence_jacobian.grids import markov_rouwenhorst
-
 # Project-defined tools
-from Tools.transition_matrices import DiscreteTransitions, TransitionMatrix
+from tools.transition_matrices import DiscreteTransitions, TransitionMatrix
 
 
 # %% Interpolators
@@ -104,37 +103,28 @@ def crra_marg_inv(c, crra):
     return np.power(c, -1.0 / crra)
 
 
-@jit
-def beq_func(a, beq_inten, beq_shift, crra):
-    return beq_inten * np.power(a + beq_shift, 1 - crra) / (1 - crra)
-
-
-@jit
-def marg_beq_func(a, beq_inten, beq_shift, crra):
-    return beq_inten * np.power(a + beq_shift, -crra)
-
-
 # %% Transition matrix class for the model
 class NKtmat(TransitionMatrix):
     """Transition matrix for the SimpleNK model."""
 
-    def __init__(self, a_tmat, z_tmat):
+    def __init__(self, a_tmat, z_tmat, liv_prb):
         super().__init__()
         self.a_tmat = a_tmat
         self.z_tmat = z_tmat
+        self.liv_prb = liv_prb
 
-    def expect(self, out):
-        # Apply productivity transition
+    def postmult(self, out):
+        # 2d state space: (z, a)
         exp = np.einsum("...mk,jm", out, self.z_tmat)
-        # Apply asset transition
+        exp *= self.liv_prb
         exp = np.einsum("...jk,jlk->...jl", exp, self.a_tmat)
         return exp
 
-    def advance(self, D):
-        # Apply asset transition
+    def premult(self, D):
+        # 2d state space: (z, a)
         Dtp1 = np.einsum("ij,ijk->ik", D, self.a_tmat)
-        # Apply productivity transition
-        Dtp1 = self.z_tmat.T @ Dtp1
+        Dtp1 *= self.liv_prb
+        Dtp1 = np.einsum("jm,jk->mk", self.z_tmat, Dtp1)
         return Dtp1
 
 
@@ -156,120 +146,109 @@ class SimpleNKAgentSolver:
     """One-period solver for the SimpleNKAgent."""
 
     solution_next: SimpleNKSolution
+    # Preferences
     crra: float
     beta: float
-    beq_inten: float
-    beq_shift: float
+    # Survival
     LivPrb: float
     # Interest rates
     R: float
+    # Asset grid
+    a_grid: np.ndarray
     # Income process
     prod_age_inter: float
     prod_pers_grid: np.ndarray
     prod_pers_trans: np.ndarray
     wage_rate: float
     working: bool
-    a_grid: np.ndarray
     ls_transf: float
     tax_rate: float
     pension_mult: float
 
     # Auxiliary functions
     def dudc(self, c):
-        """Marginal utility of consumption."""
         return crra_marg(c, self.crra)
 
     def dudc_inv(self, c):
-        """Inverse marginal utility of consumption."""
         return crra_marg_inv(c, self.crra)
 
     def u_inv(self, u):
-        """Inverse of the CRRA utility function."""
         return crra_inv(u, self.crra)
 
-    def beq_func(self, a):
-        """Bequest utility."""
-        return beq_func(a, self.beq_inten, self.beq_shift, self.crra)
-
-    def marg_beq_func(self, a):
-        """Marginal bequest utility."""
-        return marg_beq_func(a, self.beq_inten, self.beq_shift, self.crra)
-
     def income_func(self, z_t):
-        """Compute income components for a given productivity state."""
+        prod = np.exp(self.prod_age_inter + z_t)
         # Other components of cash-on-hand
         if self.working:
-            eff_hours = np.exp(self.prod_age_inter + z_t)
-            ret_benef = 0.0
+            # Hours normalized to 1, so effective hours are just productivity.
+            eff_hours = prod
+            ret_benef = np.zeros_like(prod)
         else:
-            eff_hours = 0.0
-            ret_benef = np.exp(self.prod_age_inter + z_t) * self.pension_mult
+            eff_hours = np.zeros_like(prod)
+            ret_benef = prod * self.pension_mult
 
         pret_inc = self.wage_rate * eff_hours + ret_benef
         tax = self.tax_rate * pret_inc
         net_transf = self.ls_transf + ret_benef - tax
 
-        return pret_inc, tax, net_transf
+        return eff_hours, ret_benef, pret_inc, tax, net_transf
 
     def solve(self):
         """Solve one period of the household problem via EGM."""
         # Find grid dimensions
         n_zt = self.prod_pers_trans.shape[0]
+        n_atm1 = len(self.a_grid)
         n_at = len(self.solution_next.grids["a_tm1"])
 
-        # Find end-of-period value (dims zt, at)
-        dgda = np.zeros((n_zt, n_at))
-        # Survival (expected continuation)
-        if self.LivPrb > 0.0:
-            dgda += (
-                self.beta
-                * self.LivPrb
-                * np.dot(self.prod_pers_trans, self.solution_next.vfunc["dvda"])
-            )
-        # Death (bequest)
-        if self.LivPrb < 1.0:
-            dgda += (1 - self.LivPrb) * self.marg_beq_func(
-                self.solution_next.grids["a_tm1"][None, :]
-            )
+        # Find end-of-period value dims (zt, at) integrating over
+        # z_{t+1} and discounting.
+        dgda = self.beta * np.einsum(
+            "jm,ma->ja", self.prod_pers_trans, self.solution_next.vfunc["dvda"]
+        )
 
-        # EGM inversion
+        # EGM inversion dims (zt, at)
         c_endo = self.dudc_inv(dgda)
         m_endo = self.solution_next.grids["a_tm1"][None, :] + c_endo
 
-        # Evaluate the start-of-period outcomes and marginal value function
-
-        # Reshape grids for broadcasting.
-        # Order of dimensions is: z_t, a_tm1
+        # Evaluate outcomes on exogenous grid. dims (zt, a_{t-1})
         a_tm1 = self.a_grid[None, :]
         z_t = self.prod_pers_grid[:, None]
+
+        # Initialize start-of-period marginal value function (zt, a_{t-1})
+        dvda = np.zeros((n_zt, n_atm1))
 
         # Assets after capital gains, "k_t"
         k_t = self.R * a_tm1
 
-        # Various income and tax components
-        pret_inc, tax, net_transf = self.income_func(z_t)
-        # Income (after tax)
-        income = pret_inc + self.ls_transf - tax
+        # Income and taxes
+        eff_hours, ret_benef, pret_inc, tax, net_transf = self.income_func(z_t)
+
+        # Retirement benefits are in both pret_inc and net_transf, so subtract once.
+        income = (pret_inc - ret_benef) + net_transf
 
         # Cash on hand
         m_t = k_t + income
 
         # Interpolate consumption on exogenous grid
         c = interp_monotone(m_endo, c_endo, m_t)
-        # Marginal value function on exogenous grid
-        dvda = self.R * self.dudc(c)
 
+        # Add continuation value of surviving agents to marginal value function
+        if self.LivPrb > 0.0:
+            dvda += self.LivPrb * self.R * self.dudc(c)
+
+        # Assets at the end of the period
         a_t = m_t - c
 
-        # Outputs
+        # Outputs. They have to be adjusted for survival before integration.
         self.outputs = {
-            "a_sop": a_tm1 + np.zeros_like(m_t),  # Broadcast
-            "m": m_t,
-            "c": c,
-            "a": a_t,
-            "a_dead": a_t * (1 - self.LivPrb),  # Assets of the dead
-            "income": income + np.zeros_like(m_t),
-            "net_transf": net_transf + np.zeros_like(m_t),
+            "B_out": (1.0 - self.LivPrb) * a_tm1,  # Bequest of the dying
+            "C": self.LivPrb * c,  # Consumption of the living
+            "A": self.LivPrb * a_t,  # End-of-period assets of the living
+            "N": self.LivPrb * eff_hours,  # Effective labor supply of the living
+            "P": self.LivPrb * np.ones_like(c),  # Surviving population
+            "T": -1.0 * self.LivPrb * net_transf,  # Net taxes paid by the living
+            "Income": self.LivPrb * income,  # Income of the living
+            "Pwork": self.LivPrb
+            * np.array([[[self.working]]]),  # Indicator for working
         }
 
         # Transition matrix to next period
@@ -277,7 +256,7 @@ class SimpleNKAgentSolver:
         # Spread a_t mass on next period grid
         mass = mass_to_1d_grid_monotone(a_t, self.solution_next.grids["a_tm1"])
         # Expand with evolution of productivity
-        tmat = NKtmat(mass, self.prod_pers_trans)
+        tmat = NKtmat(mass, self.prod_pers_trans, self.LivPrb)
 
         # Construct and return solution
         return SimpleNKSolution(
@@ -292,11 +271,12 @@ class SimpleNKAgentSolver:
 class SimpleNKAgent(AgentType):
     """Lifecycle agent used in the examples and tests."""
 
-    def __init__(self, cycles, tolerance=1e-10, **kwds):
+    def __init__(self, cycles, tolerance=1e-10, nb_dstn=None, **kwds):
         """Initialize the agent with model parameters."""
         self.cycles = cycles
         self.pseudo_terminal = False
         self.tolerance = tolerance
+        self.nb_dstn = nb_dstn
 
         # Initialize parameters
         self.params = Parameters(**kwds)
@@ -338,13 +318,14 @@ class SimpleNKAgent(AgentType):
         self.solution_terminal = SimpleNKSolution(
             grids={"a_tm1": a_grid, "z_t": np.zeros(z_len)},
             outcomes={
-                "a_sop": a_grid + np.zeros_like(m),
-                "m": m,
-                "c": m,
-                "a": np.zeros_like(m),
-                "income": np.zeros_like(m),
-                "net_transf": np.zeros_like(m),
-                "a_dead": np.zeros_like(m),
+                "B_out": np.zeros_like(m),  # Bequest of the dying
+                "C": m,  # Consumption of the living
+                "A": np.zeros_like(m),  # End-of-period assets of the living
+                "N": np.zeros_like(m),  # Effective labor supply of the living
+                "P": np.zeros_like(m),  # Surviving population
+                "T": np.zeros_like(m),  # Net taxes paid by the living
+                "Income": np.zeros_like(m),  # Income of the living
+                "Pwork": np.zeros_like(m),  # Indicator for working
             },
             vfunc={"dvda": np.power(m, -self.params["crra"])},
         )
@@ -358,32 +339,33 @@ class SimpleNKAgent(AgentType):
 
         return outcome_mesh
 
-    def build_transitions(self, newborn_dstn=None):
+    def build_transitions(self):
         """Create a ``DiscreteTransitions`` object for the agent."""
         # Construct an object representing the transitions of a
         # population of agents.
 
-        # Make survival probabilities a list if they are constant
-        if isinstance(self.params["LivPrb"], list):
-            surv_probs = self.params["LivPrb"]
+        # Check that nb_dstn integrates to 1
+        if self.nb_dstn is not None:
+            if abs(np.sum(self.nb_dstn) - 1.0) > 1e-8:
+                raise ValueError("nb_dstn does not integrate to 1.")
         else:
-            surv_probs = [self.params["LivPrb"]] * self.params._length
+            raise ValueError("nb_dstn has not been set. Cannot build transitions.")
+
+        nb_mass = self.nb_dstn / np.sum(self.nb_dstn)
 
         if self.cycles == 0:
             # Infinite horizon
             self.transitions = DiscreteTransitions(
-                living_tmats=[self.solution[0].tmat],
-                surv_probs=surv_probs,
+                tmats=[self.solution[0].tmat],
                 life_cycle=False,
-                newborn_dstn=newborn_dstn,
+                nb_dstn=nb_mass,
             )
         else:
             # Lifecycle
             self.transitions = DiscreteTransitions(
-                living_tmats=[s.tmat for s in self.solution[:-1]],
-                surv_probs=surv_probs,
+                tmats=[s.tmat for s in self.solution[:-1]],
                 life_cycle=True,
-                newborn_dstn=newborn_dstn,
+                nb_dstn=nb_mass,
             )
 
 
@@ -409,12 +391,14 @@ init_nk_params = {
     "pension_mult": 1.0,
 }
 
+
 # Income
 prod_pers_grid, _, prod_pers_trans = markov_rouwenhorst(rho=0.95, sigma=0.02, N=5)
 
 # An initial dictionary with some parameters
 init_income_params = {
     "wage_rate": 1.0,
+    "prod_fe": np.array([0.0]),
     # Age intercepts
     "prod_age_inter": [1.0, 1.5, 2.0],
     # Persistent productivity
