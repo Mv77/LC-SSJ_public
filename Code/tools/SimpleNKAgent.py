@@ -197,7 +197,6 @@ class SimpleNKAgentSolver:
         # Find grid dimensions
         n_zt = self.prod_pers_trans.shape[0]
         n_atm1 = len(self.a_grid)
-        n_at = len(self.solution_next.grids["a_tm1"])
 
         # Find end-of-period value dims (zt, at) integrating over
         # z_{t+1} and discounting.
