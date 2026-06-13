@@ -1,16 +1,14 @@
-# Public accompanying code to [``Sequence-Space Jacobians of Life Cycle Models''](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5274675)
+# Public accompanying code to [``Sequence-Space Jacobians of Life Cycle Models''](https://www.bencebardoczy.com/files/lc-ssj.pdf)
 
-## By [Bence Bardoczy](https://www.bencebardoczy.com/) and [Mateo Velasquez-Giraldo](https://mateovg.com/)
+## By [Bence Bardoczy](https://www.bencebardoczy.com/), [Akshay Shanker](https://akshayshanker.net/) and [Mateo Velasquez-Giraldo](https://mateovg.com/)
 
-**Launch an interactive demo:**     [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Mv77/LC-SSJ_public/HEAD?urlpath=%2Fdoc%2Ftree%2Fdemo.ipynb)
+**Launch an interactive demo:**     [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Mv77/LC-SSJ_public/HEAD?urlpath=%2Fdoc%2Ftree%2FCode%2Fdemo.ipynb)
 
-This repository contains code that implements and demonstrates our method for finding Sequence-Space Jacobians of life cycle models.
+This repository contains code that implements and demonstrates our method for finding Sequence-Space Jacobians of life cycle models. The main file is [`Code/demo.ipynb`](https://github.com/Mv77/LC-SSJ_public/blob/main/Code/demo.ipynb). It is a complement to the "Cookbook" appendix of the paper and has code to reproduce all its results and figures. The code further demonstrates how to integrate the Jacobians that we calculate with the [sequence-jacobian](https://github.com/shade-econ/sequence-jacobian) toolkit and perform equilibrium analyses. It uses a simple pension reform as an illustrative example.
 
-It has code to [reproduce all the figures](https://github.com/Mv77/LC-SSJ_public/blob/main/Paper_figures.py) and [experiments](https://github.com/Mv77/LC-SSJ_public/blob/main/LC_IH_benchmarks.py) reported in the paper, as well as a [standalone demonstration](https://github.com/Mv77/LC-SSJ_public/blob/main/demo.ipynb) in a jupyter notebook.
+We will try to keep the code updated and provide better comments as best we can. Contact us if you have issues.
 
-We will try to clean the code up and provide better comments soon. Contact us if you have issues in the meantime.
-
-Please cite the paper if you find this code useful. Here is a suggested `.bib` entry:
+Please cite the paper if you find this code useful. Here is a suggested `.bib` entry **(to be updated soon)**:
 ```
 @online{bardoczy_sequence-space_2025,
   type = {SSRN Scholarly Paper},
