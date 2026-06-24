@@ -1,4 +1,4 @@
-# Public accompanying code to [``Sequence-Space Jacobians of Life Cycle Models''](https://www.bencebardoczy.com/files/lc-ssj.pdf)
+# Public accompanying code to [``Sequence-Space Jacobians of Life Cycle Models''](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5274675)
 
 ## By [Bence Bardoczy](https://www.bencebardoczy.com/), [Akshay Shanker](https://akshayshanker.net/) and [Mateo Velasquez-Giraldo](https://mateovg.com/)
 
@@ -8,12 +8,12 @@ This repository contains code that implements and demonstrates our method for fi
 
 We will try to keep the code updated and provide better comments as best we can. Contact us if you have issues.
 
-Please cite the paper if you find this code useful. Here is a suggested `.bib` entry **(to be updated soon)**:
+Please cite the paper if you find this code useful. Here is a suggested `.bib` entry:
 ```
 @online{bardoczy_sequence-space_2025,
   type = {SSRN Scholarly Paper},
   title = {Sequence-{{Space Jacobians}} of {{Life Cycle Models}}},
-  author = {Bardóczy, Bence and Velásquez-Giraldo, Mateo},
+  author = {Bardóczy, Bence and Shanker, Akshay and Velásquez-Giraldo, Mateo},
   date = {2025-05-29},
   number = {5274675},
   eprint = {5274675},
@@ -24,6 +24,7 @@ Please cite the paper if you find this code useful. Here is a suggested `.bib` e
   urldate = {2025-06-02},
   langid = {english},
   pubstate = {prepublished},
+  keywords = {General Equilibrium,Heterogeneous Agent Models,Life Cycle Dynamics,Sequence Space Jacobians}
 }
 
 ```
